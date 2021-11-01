@@ -12,6 +12,7 @@
 #define MAX 100
 
 // 条件变量和信号量最大的区别：条件变量可以一次性唤醒多个
+// mutex负责对缓冲区的互斥访问，条件变量用于唤醒等待缓冲区的线程
 
 pthread_mutex_t mutex;
 pthread_cond_t proc, cons;
@@ -20,7 +21,7 @@ int buffer = 0;
 void* producer(void* ptr){
     for(int i = 1; i <= MAX; ++i){
         pthread_mutex_lock(&mutex);
-        while(buffer != 0)
+        if(buffer != 0)
             pthread_cond_wait(&proc, &mutex);
         buffer = i;
         printf("Produce %d\n", i);
@@ -34,7 +35,7 @@ void* producer(void* ptr){
 void* consumer(void* ptr){
     for(int i = 1; i <= MAX; ++i){
         pthread_mutex_lock(&mutex);
-        while(buffer == 0)
+        if(buffer == 0)
             pthread_cond_wait(&cons, &mutex);
         buffer = 0;
         printf("Consume %d\n", i);
